@@ -1,15 +1,16 @@
-require 'pry'
+ require 'pry'
 
-x_point, y_point, x, y = ARGV
+ x_point, y_point, x, y = ARGV
 
-if x_point == x && y_point == y
-	puts 'Точка найдена!'
-elsif x_point != x && y_point != y
-	puts 'Близко, но нет!'
-elsif x_point == x && y_point != y
+ if x_point == x && y_point == y
+ 	puts 'Точка найдена!'
+ elsif x_point == x
 	puts 'x координата верна, y нет'
-elsif x_point != x && y_point == y
+ elsif y_point == y
     puts 'y координата верна, x нет'
+else 
+	puts 'Близко, но нет!'
 end
 
-binding.pry
+#binding.pry
+
