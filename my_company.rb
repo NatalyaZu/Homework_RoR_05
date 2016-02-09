@@ -1,3 +1,5 @@
+require 'pp'
+
 class Developer
 	MAX_TASKS = 10
 
@@ -5,7 +7,7 @@ class Developer
 	def initialize(name)
 		@name = name
 		@task_list = []
-		@text_length = 0
+		@type
 	end
 
 	def max_tasks
@@ -19,7 +21,7 @@ class Developer
 	def add_task(task)
 		raise ('Слишком много работы!') if @task_list.count >= max_tasks
 		
-		@task_list << task #.push(task)
+		@task_list << task # @task.push(task)
 		puts "#{@name}: добавлена задача #{task}. Всего в списке задач: #{@task_list.count} "
 		
 	end
@@ -47,9 +49,9 @@ class Developer
 		
 	def	can_add_task?
 		if @task_list.count <= max_tasks
-			puts "tasks: #{@task_list.count} >> true" 
+			puts true 
 		else
-			puts "tasks: #{@task_list.count} >> false" 
+			puts false 
 		end
 	end	
 
@@ -80,22 +82,127 @@ class SeniorDeveloper < Developer
 end
 
 
-dev = Developer.new('Наталья')
-jdev = JuniorDeveloper.new('Наталья')
-sdev = SeniorDeveloper.new('Наталья')
+class Team
+	MESSAGES = {
+		report: '%s (%s): %s'
+	}
 
-dev.add_task('"Полить кактус"')
+	attr_reader :name, :juniors, :developers, :seniors
 
-puts dev.tasks
-dev.can_add_task?
-dev.status
-dev.work!
-dev.can_work?
+	def initialize(&block)
+		@dev = []
+		@seniors = []
+		@developers = []
+		@juniors = []
+		@priority = []
+		@dev_type = []
+		@tasks = []
+		instance_eval &block
+	end
 
-jdev.add_task('"Полить кактус"')
-jdev.work!
+	def add_task(task)
+		@tasks << task
 
-sdev.add_task('"Полить кактус"')
+		dev.add_task(task)
+
+		block.call(dev, task)
+	end
+
+	def tasks
+		@tasks.map.with_index{|t,i| puts "#{i+1}. #{t}"}.join("\n")
+	end
+
+	 def priority(*list)
+	 	@priority = list
+	 end
+
+	 def make_developer(type,name)
+	  	type.new(name)
+	 end
+
+	 def all
+	 	@dev
+	 end
+
+	 def dev_type(*type)
+	 	@dev_type = type
+	 end
+
+	 def report
+	 	puts messages[:report] % [name, dev_type, tasks]
+	 end
+
+
+	private
+
+	def messages
+		self.class::MESSAGES
+	end
+
+	def have_seniors(*names)
+		@seniors = names 
+		@dev << @seniors.map!{|name| make_developer(SeniorDeveloper,name)}
+	end
+
+	def have_developers(*names)
+		@developers = names
+		@dev << @developers.map!{|name| make_developer(Developer,name)}
+	end
+
+	def have_juniors(*names)
+		@juniors = names
+		@dev << @juniors.map!{|name| make_developer(JuniorDeveloper,name)}
+	end
+
+	def on_task (type, &block)
+		@dev_type[type] = block
+	end
+
+end
+
+team = Team.new do 
+	have_seniors 'Олег', 'Оксана'
+	have_developers 'Олеся', 'Василий', 'Игорь-Богдан'
+	have_juniors 'Владислава', 'Аркадий', 'Рамеш'
+	priority :juniors, :developers, :seniors
+
+	type :junior, :developer, :senior
+	
+	on_task :junior do |dev, task|
+	  puts "Отдали задачу #{task} разработчику #{dev.name}, следите за ним!"
+	end
+
+	on_task :developer do |dev, task|
+	 	puts "#{dev.name} делает хорошо выданную задачу #{task}!"
+	end
+
+	on_task :senior do |dev, task|
+		puts "#{dev.name} сделает #{task}, но просит больше с такими глупостями не приставать!"
+	end
+
+end
+
+p team.seniors
+p team.developers #.map{|i| "#{i} @name=#{i.name}, @task_list=#{i.task_list}"}
+p team.juniors
+#puts team.all
+team.add_task 'Погладить шнурки'
+
+# dev = Developer.new('Наталья')
+# jdev = JuniorDeveloper.new('Наталья')
+# sdev = SeniorDeveloper.new('Наталья')
+
+# dev.add_task('"Полить кактус"')
+
+# puts dev.tasks
+# dev.can_add_task?
+# dev.status
+# #dev.can_work?
+
+# jdev.add_task('"Полить кактус"')
+# jdev.work!
+
+# sdev.add_task('"Полить кактус"')
 
 
 
